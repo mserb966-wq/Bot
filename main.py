@@ -120,22 +120,22 @@ def process_injuries(message):
         f"<b>Травмы/Ограничения:</b> {data['injuries']}\n\n"
         "Creator изучит данные и свяжется с тобой."
     )
-    bot.send_message(
-        message.chat.id,
-        summary,
-        parse_mode="HTML",
-        reply_markup=get_main_keyboard(),
-    )
+    # Уведомление тебе в личку со всей анкетой клиентов
+if message.from_user.username:
+    user_tag = f"@{message.from_user.username}"
+else:
+    user_tag = f"<a href='tg://user?id={message.from_user.id}'>{message.from_user.first_name}</a>"
 
-    # Уведомление тебе в личку со всей анкетой клиента
-    admin_text = (
-        "🚨 <b>НОВАЯ АНКЕТА ПОДОПЕЧНОГО!</b>\n\n"
-        f"<b>Клиент:</b> @{message.from_user.username or 'без_юзернейма'} (ID: {message.from_user.id})\n"
-        f"<b>Имя:</b> {data['name']}\n"
-        f"<b>Параметры:</b> {data['age_weight']}\n"
-        f"<b>Цель:</b> {data['goal']}\n"
-        f"<b>Травмы/Ограничения:</b> {data['injuries']}"
-    )
+admin_text = (
+    "🚨 <b>НОВАЯ АНКЕТА ПОДОПЕЧНОГО!</b>\n\n"
+    f"<b>Клиент:</b> {user_tag}\n"
+    f"<b>Имя:</b> {data['name']}\n"
+    f"<b>Параметры:</b> {data['age_weight']}\n"
+    f"<b>Цель:</b> {data['goal']}\n"
+    f"<b>Травмы/Ограничения:</b> {data['injury']}"
+)
+
+) 
     try:
         bot.send_message(ADMIN_ID, admin_text, parse_mode="HTML")
     except Exception as e:
