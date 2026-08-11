@@ -2,8 +2,8 @@ import telebot
 from telebot import types
 
 # === 1. ИНИЦИАЛИЗАЦИЯ И НАСТРОЙКИ ===
-BOT_TOKEN = "8675670535:AAFJk1nH5vLIo3ENlJJstwrVUtbMmHRFs8s"
-ADMIN_ID =   7926462587 # Твой Telegram ID (число)
+BOT_TOKEN = "8675670535:AAFJk1nH5vLlo3ENIJJstwrVUtbMmHRFs8s"
+ADMIN_ID = 7926462587
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -20,9 +20,14 @@ def get_main_keyboard():
 # === 2. СТАРТ И ОСНОВНЫЕ КОМАНДЫ ===
 @bot.message_handler(commands=['start'])
 def start_cmd(message):
+    welcome_text = (
+        "Привет! Я бот для записи на онлайн-ведение и тренировки.\n\n"
+        "Нажми кнопку <b>«Заполнить анкету»</b> ниже, чтобы отправить свои данные."
+    )
     bot.send_message(
         message.chat.id,
-        "Привет! Нажми кнопку ниже, чтобы заполнить анкету подопечного.",
+        welcome_text,
+        parse_mode="HTML",
         reply_markup=get_main_keyboard()
     )
 
@@ -41,19 +46,28 @@ def start_survey(message):
 # === 3. ШАГИ АНКЕТЫ ===
 def process_name(message):
     user_data[message.chat.id]['name'] = message.text
-    bot.send_message(message.chat.id, "Укажи ваш возраст и текущий вес (например: 25 лет, 80 кг):")
+    bot.send_message(
+        message.chat.id,
+        "Укажи твой возраст и текущий вес (например: 25 лет, 80 кг):"
+    )
     bot.register_next_step_handler(message, process_age_weight)
 
 
 def process_age_weight(message):
     user_data[message.chat.id]['age_weight'] = message.text
-    bot.send_message(message.chat.id, "Какая у тебя главная цель? (Похудение, набор массы, форма и т.д.):")
+    bot.send_message(
+        message.chat.id,
+        "Какая у тебя главная цель? (Похудение, набор массы, силовые показатели и т.д.):"
+    )
     bot.register_next_step_handler(message, process_goal)
 
 
 def process_goal(message):
     user_data[message.chat.id]['goal'] = message.text
-    bot.send_message(message.chat.id, "Есть ли у тебя травмы, ограничения по здоровью или болячки? (Если нет, напиши 'Нет'):")
+    bot.send_message(
+        message.chat.id,
+        "Есть ли у тебя травмы, ограничения по здоровью или болячки? (Если нет, напиши 'Нет'):"
+    )
     bot.register_next_step_handler(message, process_injury)
 
 
@@ -62,16 +76,22 @@ def process_injury(message):
     user_data[chat_id]['injury'] = message.text
     data = user_data[chat_id]
 
-    # Ответ пользователю
+    # Полный ответ пользователю с анкетой, прайсом и контактами
     summary = (
         "<b>Твоя анкета принята!</b>\n\n"
         f"<b>Имя:</b> {data['name']}\n"
         f"<b>Параметры:</b> {data['age_weight']}\n"
         f"<b>Цель:</b> {data['goal']}\n"
         f"<b>Травмы/Ограничения:</b> {data['injury']}\n\n"
-        "Creator изучит данные и свяжется с тобой."
+        "💳 <b>ПРАЙС-ЛИСТ УСЛУГ:</b>\n"
+        "• Составление программы тренировок — 500 грн\n"
+        "• Индивидуальный план питания — 400 грн\n"
+        "• Полное онлайн-ведение (месяц) — 1200 грн\n\n"
+        "📩 <b>СВЯЗЬ СО МНОЙ:</b>\n"
+        "Если есть вопросы, напиши мне в личку напрямую.\n\n"
+        "Creator изучит данные и свяжется с тобой в ближайшее время!"
     )
-    
+
     bot.send_message(
         chat_id,
         summary,
@@ -79,7 +99,7 @@ def process_injury(message):
         reply_markup=get_main_keyboard()
     )
 
-    # Уведомление администратору
+    # Уведомление администратору (в личку) со всей анкетой клиента
     if message.from_user.username:
         user_tag = f"@{message.from_user.username}"
     else:
