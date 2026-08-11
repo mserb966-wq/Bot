@@ -1,126 +1,85 @@
 import telebot
 from telebot import types
 
-# === 1. НАСТРОЙКИ (ВСТАВЬ СВОИ ДАННЫЕ) === 
-BOT_TOKEN = "8675670535:AAFJk1nH5vLIo3ENlJJstwrVUtbMmHRFs8s"
-ADMIN_ID = 7926462587
+# === 1. ИНИЦИАЛИЗАЦИЯ И НАСТРОЙКИ ===
+BOT_TOKEN = "ТВОЙ_ТОКЕН_БОТА"
+ADMIN_ID = 123456789  # Твой Telegram ID (число)
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Хранилище ответов анкеты
+# Временное хранилище данных пользователей
 user_data = {}
 
 
-# === 2. КЛАВИАТУРА МЕНЮ ===
 def get_main_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton("📋 Заполнить анкету подопечного")
-    btn2 = types.KeyboardButton("💰 Услуги и прайс")
-    btn3 = types.KeyboardButton("✍️ Связаться с Creator")
-    markup.add(btn1)
-    markup.add(btn2, btn3)
+    markup.add(types.KeyboardButton("Заполнить анкету"))
     return markup
 
 
-# === 3. КОМАНДА /start ===
-@bot.message_handler(commands=["start"])
-def start_message(message):
-    welcome_text = (
-        "<b>CREATOR | Биомеханика и Сила</b>\n\n"
-        "Приветствую. Я — цифровой помощник проекта CREATOR.\n"
-        "Здесь не торгуют лицом и мотивацией. Только жесткая биомеханика, "
-        "безопасный прогресс и работа на результат.\n\n"
-        "Выбери нужное действие в меню ниже:"
-    )
+# === 2. СТАРТ И ОСНОВНЫЕ КОМАНДЫ ===
+@bot.message_handler(commands=['start'])
+def start_cmd(message):
     bot.send_message(
         message.chat.id,
-        welcome_text,
-        parse_mode="HTML",
-        reply_markup=get_main_keyboard(),
+        "Привет! Нажми кнопку ниже, чтобы заполнить анкету подопечного.",
+        reply_markup=get_main_keyboard()
     )
 
 
-# === 4. ОБРАБОТКА КНОПОК ===
-@bot.message_handler(
-    func=lambda msg: msg.text
-    in [
-        "💰 Услуги и прайс",
-        "✍️ Связаться с Creator",
-        "📋 Заполнить анкету подопечного",
-    ]
-)
-def handle_menu(message):
-    if message.text == "💰 Услуги и прайс":
-        price_text = (
-            "<b>АКТУАЛЬНЫЙ ПРАЙС-ЛИСТ (UAH):</b>\n\n"
-            "🏋️‍♂️ <b>Индивидуальная программа тренировок:</b> 800 – 1 200 грн\n"
-            "<i>(Расчет нагрузки на 4-8 недель, учет травм, видео с техникой)</i>\n\n"
-            "🥗 <b>План питания (КБЖУ + Рацион):</b> 800 – 1 000 грн\n"
-            "<i>(Гибкое меню из доступных продуктов под твою цель)</i>\n\n"
-            "🔥 <b>Комбо (Программа + Питание):</b> 1 500 – 2 000 грн\n\n"
-            "🎯 <b>Онлайн-ведение (1 месяц):</b> 2 500 – 4 000 грн\n"
-            "<i>(Полный контроль, корректировки, разбор техники 24/7)</i>\n\n"
-            "Чтобы заказать услугу, заполни анкету через кнопку в меню."
-        )
-        bot.send_message(message.chat.id, price_text, parse_mode="HTML")
-
-    elif message.text == "✍️ Связаться с Creator":
-        bot.send_message(
-            message.chat.id,
-            "По всем вопросам пиши напрямую в ЛС: @M_Serbin",
-        )
-
-    elif message.text == "📋 Заполнить анкету подопечного":
-        user_data[message.chat.id] = {}
-        msg = bot.send_message(
-            message.chat.id,
-            "Шаг 1/4: Как к тебе обращаться? (Имя или позывной)",
-            reply_markup=types.ReplyKeyboardRemove(),
-        )
-        bot.register_next_step_handler(msg, process_name)
-
-
-# === 5. ПОШАГОВАЯ АНКЕТА ===
-def process_name(message):
-    user_data[message.chat.id]["name"] = message.text
-    msg = bot.send_message(
+@bot.message_handler(func=lambda message: message.text == "Заполнить анкету")
+def start_survey(message):
+    user_data[message.chat.id] = {}
+    bot.send_message(
         message.chat.id,
-        "Шаг 2/4: Укажи ваш возраст, рост и текущий вес (например: 22 года, 180 см, 85 кг).",
+        "Как тебя зовут? (Напиши имя и фамилию)",
+        reply_markup=types.ReplyKeyboardRemove()
     )
-    bot.register_next_step_handler(msg, process_age_weight)
+    bot.register_next_step_handler(message, process_name)
+
+
+# === 3. ШАГИ АНКЕТЫ ===
+def process_name(message):
+    user_data[message.chat.id]['name'] = message.text
+    bot.send_message(message.chat.id, "Укажи ваш возраст и текущий вес (например: 25 лет, 80 кг):")
+    bot.register_next_step_handler(message, process_age_weight)
 
 
 def process_age_weight(message):
-    user_data[message.chat.id]["age_weight"] = message.text
-    msg = bot.send_message(
-        message.chat.id,
-        "Шаг 3/4: Какая твоя главная цель? (Набор массы, сушка, увеличение силовых в жиме/тяге и т.д.)",
-    )
-    bot.register_next_step_handler(msg, process_goal)
+    user_data[message.chat.id]['age_weight'] = message.text
+    bot.send_message(message.chat.id, "Какая у тебя главная цель? (Похудение, набор массы, форма и т.д.):")
+    bot.register_next_step_handler(message, process_goal)
 
 
 def process_goal(message):
-    user_data[message.chat.id]["goal"] = message.text
-    msg = bot.send_message(
-        message.chat.id,
-        "Шаг 4/4: Есть ли травмы, дискомфорт или ограничения по здоровью? (Особенно: локти, плечи, поясница, колени).",
-    )
-    bot.register_next_step_handler(msg, process_injuries)
+    user_data[message.chat.id]['goal'] = message.text
+    bot.send_message(message.chat.id, "Есть ли у тебя травмы, ограничения по здоровью или болячки? (Если нет, напиши 'Нет'):")
+    bot.register_next_step_handler(message, process_injury)
 
 
-def process_injuries(message):
-    user_data[message.chat.id]["injuries"] = message.text
-    data = user_data[message.chat.id]
+def process_injury(message):
+    chat_id = message.chat.id
+    user_data[chat_id]['injury'] = message.text
+    data = user_data[chat_id]
 
+    # Ответ пользователю
     summary = (
-        "<b>Анкета успешно отправлена!</b>\n\n"
+        "<b>Твоя анкета принята!</b>\n\n"
         f"<b>Имя:</b> {data['name']}\n"
         f"<b>Параметры:</b> {data['age_weight']}\n"
         f"<b>Цель:</b> {data['goal']}\n"
-        f"<b>Травмы/Ограничения:</b> {data['injuries']}\n\n"
+        f"<b>Травмы/Ограничения:</b> {data['injury']}\n\n"
         "Creator изучит данные и свяжется с тобой."
     )
-        # Уведомление тебе в личку со всей анкетой клиента
+    
+    bot.send_message(
+        chat_id,
+        summary,
+        parse_mode="HTML",
+        reply_markup=get_main_keyboard()
+    )
+
+    # Уведомление администратору
     if message.from_user.username:
         user_tag = f"@{message.from_user.username}"
     else:
@@ -139,15 +98,10 @@ def process_injuries(message):
         bot.send_message(ADMIN_ID, admin_text, parse_mode="HTML")
     except Exception as e:
         print(f"Ошибка отправки админу: {e}")
-        
-   
-            try:
-        bot.send_message(ADMIN_ID, admin_text, parse_mode="HTML")
-        except Exception as e:
-        print(f"Ошибка отправки админу: {e}")
 
 
-# === 6. ЗАПУСК БОТА ===
+# === 4. ЗАПУСК БОТА ===
 if __name__ == "__main__":
     print("Бот запущен...")
     bot.infinity_polling()
+    
