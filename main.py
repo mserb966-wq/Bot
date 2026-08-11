@@ -2,8 +2,8 @@ import telebot
 from telebot import types
 
 # === 1. ИНИЦИАЛИЗАЦИЯ И НАСТРОЙКИ ===
-BOT_TOKEN = "ТВОЙ_ТОКЕН_БОТА"
-ADMIN_ID = 123456789  # Твой Telegram ID (число)
+BOT_TOKEN = "8675670535:AAFJk1nH5vLIo3ENlJJstwrVUtbMmHRFs8s"
+ADMIN_ID =   7926462587 # Твой Telegram ID (число)
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
