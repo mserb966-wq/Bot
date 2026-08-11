@@ -1,4 +1,4 @@
-telebot
+import telebot
 from telebot import types
 
 # === 1. НАСТРОЙКИ (ВСТАВЬ СВОИ ДАННЫЕ) === 
