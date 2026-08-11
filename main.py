@@ -135,7 +135,6 @@ admin_text = (
     f"<b>Травмы/Ограничения:</b> {data['injury']}"
 )
 
-) 
     try:
         bot.send_message(ADMIN_ID, admin_text, parse_mode="HTML")
     except Exception as e:
